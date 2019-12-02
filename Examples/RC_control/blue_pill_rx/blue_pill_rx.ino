@@ -9,6 +9,7 @@
 #define RFM73_CE      PA9     // CE платы rfm73 "1" - работа "0" - Ожидание
 #define LED           PC13
 #define STEER_PIN     PB9
+#define ACCBR_PIN     PB8
 
 //SPI
 #define SPI_SPEED 80000
@@ -24,6 +25,7 @@ RFM73 rfm73;
 
 // Servo
 Servo steer;
+Servo accbr;
 
 /// SPI IO for RFM73
 char spi_io(char b){
@@ -60,6 +62,7 @@ void setup() {
   pinMode(RFM73_CE,OUTPUT);
   digitalWrite(RFM73_CE,HIGH);
   pinMode(LED,OUTPUT);
+  digitalWrite(LED,LOW);
   // Выбор канала - джампер
   //set_channel();
 
@@ -71,7 +74,7 @@ void setup() {
 
   // Servo init
   steer.attach(STEER_PIN);
-  
+  accbr.attach(ACCBR_PIN);
 }
 
 void loop() {
@@ -84,14 +87,16 @@ void loop() {
     delay(1);
 
     // debug
-    //Serial.print("PL_LEN:");
-    //Serial.println(pl_len,HEX);
+#ifdef DEBUG
+    Serial.print("PL_LEN:");
+    Serial.println(pl_len,HEX);
+#endif
   }
   
   
-  digitalWrite(LED,LOW);
-  delay(10);
   digitalWrite(LED,HIGH);
+  delay(10);
+  digitalWrite(LED,LOW);
   rfm73.get_rx_pl((char *)rc_packet,RC_PACKET_LEN);
   
   // debug
@@ -103,6 +108,7 @@ void loop() {
 #endif
 
   steer.write(rc_packet[0]);
+  accbr.write(rc_packet[1]);
   
   memset(rc_packet,0,RC_PACKET_LEN);
     

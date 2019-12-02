@@ -54,6 +54,7 @@ void setup() {
   pinMode(RFM73_CE,OUTPUT);
   digitalWrite(RFM73_CE,HIGH);
   pinMode(LED,OUTPUT);
+  digitalWrite(LED,LOW);
   // Analog
   pinMode(PA0,INPUT_ANALOG);
   pinMode(PA1,INPUT_ANALOG);
@@ -75,10 +76,12 @@ void loop() {
   rc_packet[1]=map(analogRead(PA1),0,4095,0,170);
 
   // debug
-  //Serial.print("CH1:");
-  //Serial.println(rc_packet[0],DEC);
-  //Serial.print("CH2:");
-  //Serial.println(rc_packet[1],DEC);
+ #ifdef DEBUG
+  Serial.print("CH1:");
+  Serial.println(rc_packet[0],DEC);
+  Serial.print("CH2:");
+  Serial.println(rc_packet[1],DEC);
+ #endif
   
   // Отправляем пакет в канал
   
@@ -95,9 +98,9 @@ void loop() {
 
   // if got ASK from rx - blink led
   if (cnt){
-    digitalWrite(LED,LOW);
-    delay(10);
     digitalWrite(LED,HIGH);
+    delay(10);
+    digitalWrite(LED,LOW);
   }
 
   // debug
