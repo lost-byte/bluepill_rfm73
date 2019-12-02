@@ -1,7 +1,7 @@
 #include "RFM73.h"
 
 // External SPI IO fn
-char *(*SPI_1byte_IO)(char *b);
+//char (*SPI_1byte_IO)(char b);
 
 // SPI IO Functions
 void RFM73::SPI_transfer(char *dest, char *src, uint8_t len)
@@ -101,6 +101,19 @@ uint8_t RFM73::get_rxpl_len(){
   return dest[1];
 }
 
+void RFM73::flush_tx_buf(){
+	SPI_cmd_write(RFM73_CMD_FLUSH_TX,NULL,0);
+}
+
+void RFM73::flush_rx_buf(){
+	SPI_cmd_write(RFM73_CMD_FLUSH_RX,NULL,0);
+}
+
+void RFM73::get_rx_pl(char *dest, uint8_t len){
+  SPI_cmd_read(RFM73_CMD_R_RX_PAYLOAD,dest,len);  
+}
+
+// Magic registers workout
 void RFM73::activate(){
   char dest[2];
   char src[2];
@@ -109,10 +122,6 @@ void RFM73::activate(){
   src[1]=0x73;
 
   SPI_transfer(dest,src,2);
-}
-
-void RFM73::get_rx_pl(char *dest, uint8_t len){
-  SPI_cmd_read(RFM73_CMD_R_RX_PAYLOAD,dest,len);  
 }
 
 void RFM73::switch_bank(){
@@ -183,21 +192,21 @@ void RFM73::pwrup(char rx_mode){
   CE_set(1);
 }
 
-void RFM73::init(char rx_mode){
+void RFM73::init(char rx_mode, uint8_t pl_width){
   pwrup(rx_mode);
   init_b1_regs();
   activate();
-  reg_write(RFM73_RG_RX_PW_P0,32);
+  reg_write(RFM73_RG_RX_PW_P0,pl_width);
 }
 
 bool RFM73::is_rx_fifo_full(){
   uint8_t r_fifo_status = reg_read(RFM73_RG_FIFO_STATUS);
-  return (r_fifo_status&(1<RX_FULL));
+  return (r_fifo_status&(1<<RX_FULL));
 }
 
 bool RFM73::is_tx_fifo_empty(){
   uint8_t r_fifo_status = reg_read(RFM73_RG_FIFO_STATUS);
-  return (r_fifo_status&(1<TX_EMPTY));
+  return (r_fifo_status&(1<<TX_EMPTY));
 }
 
 void RFM73::read_rx_blocked(char *dest){

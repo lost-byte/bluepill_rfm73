@@ -102,22 +102,25 @@ private:
 	void SPI_cmd_read(char cmd, char *dest, uint8_t len);
 	void SPI_cmd_write(char cmd, char *src, uint8_t len);
 	
+	uint8_t reg_read(uint8_t r_address);
+	void reg_write(uint8_t r_address, uint8_t val);
+	
+	
 public:
 	// External SPI IO fn
 	char (*SPI_1byte_IO)(char b);
 	void (*SPI_NSS_set)(char b);
 	void (*CE_set)(char b);
 
-	uint8_t reg_read(uint8_t r_address);
-
-	void reg_write(uint8_t r_address, uint8_t val);
-
+	// FIXME! should be moved to private
 	uint8_t reg_modify(uint8_t r_address, uint8_t set_bits, uint8_t reset_bits);
 
 	// FIFO workout
 	void set_tx_pl(char *pl, uint8_t len);
 
 	void set_tx_pl_no_ack(char *pl, uint8_t len);
+
+	void flush_tx_buf();
 
 	uint8_t get_rxpl_len();
 
@@ -132,7 +135,7 @@ public:
 
 	void pwrup(char rx_mode);
 
-	void init(char rx_mode);
+	void init(char rx_mode, uint8_t pl_width);
 
 	bool is_rx_fifo_full();
 
