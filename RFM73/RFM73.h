@@ -1,3 +1,15 @@
+/*******************************************************************
+  rfm73 module library
+  Written as arduino library, but, with opinion, that it shouldn't 
+  be "arduino-locked".
+  
+  Tested on blue-pill and STM32duino.
+
+  author: lost-byte (eyermac@yandex.ru) 
+  
+  BSD license, all text above must be included in any redistribution
+ *******************************************************************/
+
 #ifndef RFM73_H
 #define RFN73_H
 
@@ -120,7 +132,9 @@ public:
 
 	void set_tx_pl_no_ack(char *pl, uint8_t len);
 
-	void flush_tx_buf();
+	void flush_tx_fifo();
+	
+	void flush_rx_fifo();
 
 	uint8_t get_rxpl_len();
 
@@ -143,5 +157,6 @@ public:
 
 	void read_rx_blocked(char *dest);
 
+	void cli();
 };
 #endif

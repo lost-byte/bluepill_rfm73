@@ -86,7 +86,7 @@ void loop() {
   // Отправляем пакет в канал
   
   rfm73.reg_modify(RFM73_RG_STATUS,(1<<RX_DR)|(1<TX_DS)|(1<<MAX_RT),0); // clear all interrupts
-  rfm73.flush_tx_buf();
+  rfm73.flush_tx_fifo();
   rfm73.set_tx_pl((char *)rc_packet,RC_PACKET_LEN);
   
 

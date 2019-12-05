@@ -44,10 +44,12 @@ void rfm73_ce_set(char b){
 #define RC_PACKET_LEN 4
 uint8_t rc_packet[RC_PACKET_LEN];
 
+// Max tryes to wait rc packet in FIFO
+#define WAIT_RX_MAXCNT 200
+
 void setup() {
 
-  // Инит ножек
-  // Инит периферии
+  // Serial line - debug and settings/trim
   Serial.begin(115200);
 
   // SPI2
@@ -63,7 +65,8 @@ void setup() {
   digitalWrite(RFM73_CE,HIGH);
   pinMode(LED,OUTPUT);
   digitalWrite(LED,LOW);
-  // Выбор канала - джампер
+  
+  // Read radio channel
   //set_channel();
 
   // RFM73 module init
@@ -77,40 +80,69 @@ void setup() {
   accbr.attach(ACCBR_PIN);
 }
 
-void loop() {
-  uint8_t reg=0;
+void controls_neitral(){
+  // set up servos
+  steer.write(170/2);
+  accbr.write(170/2);
+}
 
-  uint8_t pl_len=0;
-  
-  while (pl_len==0){
-    pl_len = rfm73.get_rxpl_len();
-    delay(1);
-
-    // debug
+void rc_packet_apply(){
+    
 #ifdef DEBUG
-    Serial.print("PL_LEN:");
-    Serial.println(pl_len,HEX);
-#endif
-  }
-  
-  
-  digitalWrite(LED,HIGH);
-  delay(10);
-  digitalWrite(LED,LOW);
-  rfm73.get_rx_pl((char *)rc_packet,RC_PACKET_LEN);
-  
-  // debug
-#ifdef DEBUG
+  // debug - show channel values 
   Serial.print("CH1:");
   Serial.println(rc_packet[0],DEC);
   Serial.print("CH2:");
   Serial.println(rc_packet[1],DEC);
 #endif
 
+  // set up servos
   steer.write(rc_packet[0]);
   accbr.write(rc_packet[1]);
+}
+
+void loop() {
   
-  memset(rc_packet,0,RC_PACKET_LEN);
+  uint8_t pl_len=0;   // rx payload len
+  uint8_t wait_rx_cnt = WAIT_RX_MAXCNT;
+
+  // wait for any byte on rx FIFO
+  while ((pl_len<RC_PACKET_LEN)&&wait_rx_cnt){
+    pl_len = rfm73.get_rxpl_len();
+    delay(1);
+    wait_rx_cnt--;
+  }
+
+  if (wait_rx_cnt){
+    // rc packet has been received less then WAIT_RX_MAXCNT tryes
+
+    // indicate that rc_packet has been recieved
+    digitalWrite(LED,HIGH);
+    delay(10);
+    digitalWrite(LED,LOW);
+
+    // get payload
+    rfm73.get_rx_pl((char *)rc_packet,RC_PACKET_LEN);
+    
+    // set up servos
+    rc_packet_apply();
+
+    // clear packet buffer
+    memset(rc_packet,0,RC_PACKET_LEN);
+    
+  }else{
+    // rc packet not received in WAIT_RX_MAXCNT tryes
+    // tx lost
+
+    // Set all controls to neitral
+    controls_neitral();
+
+    // flush tx FIFO
+    rfm73.flush_rx_fifo();
+
+    // clear all interrups on rfm73
+    rfm73.cli();
+  }
     
   //delay(200);
 }
