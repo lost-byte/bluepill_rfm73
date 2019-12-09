@@ -17,7 +17,7 @@ Thats why fixed goals for this project:
 My first Idea of using RFM73 modules is low-cost realisation of multichannel proportional RC-system.
 Thats why 'Example' contains basic realisation of 2Ch (Car or boat) RC-system.
 
-To realize that example, you need:
+To implement  that example, you need:
 * Hardware items:
   * 2x Bluepill (Also calls as 'Generic STM32F103') boards, for TX and RX devices;
   * 2x Potintiometers - input for TX;
