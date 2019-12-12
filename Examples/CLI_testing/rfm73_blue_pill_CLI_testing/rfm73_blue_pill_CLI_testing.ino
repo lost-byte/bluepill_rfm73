@@ -160,7 +160,44 @@ void CLI_command_process(char *line){
   CLI_help(NULL);                       // print help
 }
 
+struct a2n addr2nme[0x1D]={
+  {"CONFIG  "},
+  {"EN_AA   "},
+  {"RX_ADDR "},
+  {"SETUP_AW"},
+  {"SETUP_RT"},
+  {"RF_CHANN"},
+  {"STATUS  "},
+  {"OBSRW_TX"},
+  {"CARRIERD"},
+  {"ADDR_P0 "},
+  {"ADDR_P1 "},
+  {"ADDR_P2 "},
+  {"ADDR_P3 "},
+  {"ADDR_P4 "},
+  {"ADDR_P5 "},
+  {"ADDR_TX "},
+}
+
 void RFM73_reg_dump(char *args){
+  uint8_t reg;
+  uint8_t addr = 0;
+  uint8_t j;
+  Serial.print("|ADDR|  NAME  | VAL |  b7  |  b6  |  b5  |  b4  |  b3  |  b2  |  b1 |  b0  |");
+  for (;addr<0x1E;addr++){
+    reg = RFM73.reg_read(addr);
+    Serial.print("| ");
+    Serial.print(addr,HEX);
+    Serial.print(" |");
+    Serial.print(addr2name[addr]);
+    Serial.print("| ");
+    Serial.print(reg,HEX);
+    for (j=0;j<8;j++){
+      Serial.print(" | ");
+      Serial.print((reg&(1<<j))?'1':'0');
+    }
+    Serial.print(" |");
+  }
   Serial.println("RFM73_reg_dump:OK");
 }
 
