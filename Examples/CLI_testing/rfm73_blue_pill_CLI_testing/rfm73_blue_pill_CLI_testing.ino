@@ -149,7 +149,7 @@ void CLI_command_process(char *line){
     cmd_len = strlen(next_cmd->command);
     if (!strncmp(next_cmd->command,line,cmd_len)){
       if ((cmd_len==line_len)||(line[cmd_len]==' ')){
-        next_cmd->fn(line+strlen(next_cmd->command));
+        next_cmd->fn(line+1+strlen(next_cmd->command));
         return;
       }
     }
@@ -160,13 +160,18 @@ void CLI_command_process(char *line){
   CLI_help(NULL);                       // print help
 }
 
-struct a2n addr2nme[0x1D]={
+struct a2n{
+  const char *name;
+};
+
+struct a2n addr2name[0x1D]={
   {"CONFIG  "},
   {"EN_AA   "},
   {"RX_ADDR "},
   {"SETUP_AW"},
   {"SETUP_RT"},
   {"RF_CHANN"},
+  {"RF_SETUP"},
   {"STATUS  "},
   {"OBSRW_TX"},
   {"CARRIERD"},
@@ -177,31 +182,57 @@ struct a2n addr2nme[0x1D]={
   {"ADDR_P4 "},
   {"ADDR_P5 "},
   {"ADDR_TX "},
-}
+  {"RXPW_P0 "},
+  {"RXPW_P1 "},
+  {"RXPW_P2 "},
+  {"RXPW_P3 "},
+  {"RXPW_P4 "},
+  {"RXPW_P5 "},
+  {"FIFO_ST "},
+  {"DINPD   "},
+  {"FEATURE "},
+};
 
 void RFM73_reg_dump(char *args){
   uint8_t reg;
-  uint8_t addr = 0;
+  uint8_t addr;
   uint8_t j;
-  Serial.print("|ADDR|  NAME  | VAL |  b7  |  b6  |  b5  |  b4  |  b3  |  b2  |  b1 |  b0  |");
-  for (;addr<0x1E;addr++){
-    reg = RFM73.reg_read(addr);
-    Serial.print("| ");
-    Serial.print(addr,HEX);
+  Serial.print("| ADDR |  NAME  | VAL  |7|6|5|4|3|2|1|0|\n");
+  for (addr=0;addr<24;addr++){
+    reg = rfm73.reg_read(addr);
+    Serial.print("| 0x");
+    Serial.print(addr>>4,HEX);
+    Serial.print(addr&0x0f,HEX);
     Serial.print(" |");
-    Serial.print(addr2name[addr]);
-    Serial.print("| ");
-    Serial.print(reg,HEX);
+    Serial.print(addr2name[addr].name);
+    Serial.print("| 0x");
+    Serial.print(reg>>4,HEX);
+    Serial.print(reg&0x0F,HEX);
+    Serial.print(" ");
     for (j=0;j<8;j++){
-      Serial.print(" | ");
-      Serial.print((reg&(1<<j))?'1':'0');
+      Serial.print("|");
+      Serial.print((reg&(0x80>>j))?'1':'0');
     }
-    Serial.print(" |");
+    Serial.print("|\n");
   }
-  Serial.println("RFM73_reg_dump:OK");
+  
+}
+
+void RFM73_status(char *args){
+  
 }
 
 void RFM73_send(char *args){
+  Serial.print("Send:");
+  Serial.println(args);
+  rfm73.reg_modify(RFM73_RG_STATUS,(1<<RX_DR)|(1<TX_DS)|(1<<MAX_RT),0); // clear all interrupts
+  rfm73.flush_tx_fifo();
+  rfm73.set_tx_pl(args,strlen(args));
+  uint16_t cnt=10;
+  while ((!rfm73.is_tx_fifo_empty())&&cnt){
+    cnt--;
+    delay(1);
+  }
   Serial.println("RFM73_send:OK");
 }
 
