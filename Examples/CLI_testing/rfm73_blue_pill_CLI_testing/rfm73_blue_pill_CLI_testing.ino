@@ -58,6 +58,7 @@ const struct cli_command cli_commad_list[]={
   {"help",  CLI_help},
   {"dump", RFM73_reg_dump},
   {"send", RFM73_send},
+  {"send_blocked", RFM73_send_wack},
   {"send_nack", RFM73_send_nack},
   {"set", RFM73_set},
   NULL,
@@ -72,7 +73,8 @@ const struct help_line cli_help[]={
   {"RFM test utility, usage:"},
   {"help - this output"},
   {"dump - print RFM73 register states"},
-  {"send - switch to TX-mode, send message and wait for ack"},
+  {"send message - switch to TX-mode, send message, not ack waiting"},
+  {"send_blocked timeout_ms message - switch to TX-mode, send message\nand wait for ack not longer then timeout"},
   {"send_nack - like 'send' but without ack"},
   {"set - set RFM73 option:"},
   {"     channel 1..8 - switch channel"},
@@ -95,8 +97,6 @@ void CLI_help(char *args){
     next_line++;
   }
 }
-
-
 
 void CLI_flush(){
   cli_in_buf_lvl = 0;
@@ -225,11 +225,29 @@ void RFM73_status(char *args){
 void RFM73_send(char *args){
   Serial.print("Send:");
   Serial.println(args);
-  rfm73.reg_modify(RFM73_RG_STATUS,(1<<RX_DR)|(1<TX_DS)|(1<<MAX_RT),0); // clear all interrupts
+  rfm73.cli(); // clear all interrupts
   rfm73.flush_tx_fifo();
   rfm73.set_tx_pl(args,strlen(args));
   uint16_t cnt=10;
   while ((!rfm73.is_tx_fifo_empty())&&cnt){
+    cnt--;
+    delay(1);
+  }
+  Serial.println("RFM73_send:OK");
+}
+
+void RFM73_send_wack(char *args){
+  Serial.print("Send:");
+  Serial.println(args);
+  rfm73.cli(); // clear all interrupts
+  rfm73.flush_tx_fifo();
+  uint32_t cnt;
+  int skip = sscanf(args,"%d",&cnt);
+  Serial.print("Wait not longer than ");
+  Serial.print(cnt,DEC);
+  Serial.println("ms");
+  rfm73.set_tx_pl(args,strlen(args+1+skip));
+  while ((!rfm73.is_tx_data_sent())&&cnt){
     cnt--;
     delay(1);
   }

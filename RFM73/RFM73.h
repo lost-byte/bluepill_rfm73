@@ -153,8 +153,12 @@ public:
 	bool is_rx_fifo_full();
 
 	bool is_tx_fifo_empty();
+	
+	bool is_tx_data_sent();
 
-	void read_rx_blocked(char *dest);
+	bool is_rx_new_data();
+
+	void read_rx_blocked(char *dest, uint16_t timeout_ms);
 
 	void cli();
 };
