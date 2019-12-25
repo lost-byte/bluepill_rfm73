@@ -154,11 +154,13 @@ public:
 
 	bool is_tx_fifo_empty();
 	
-	bool is_tx_data_sent();
+	bool is_data_sent();
 
-	bool is_rx_new_data();
+	bool is_data_ready();
+	
+	void send(char *src, uint8_t len);
 
-	void read_rx_blocked(char *dest, uint16_t timeout_ms);
+	void read_blocked(char *dest, uint16_t timeout_ms);
 
 	void cli();
 };

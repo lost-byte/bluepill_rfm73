@@ -54,7 +54,7 @@ void setup() {
   pinMode(RFM73_CE,OUTPUT);
   digitalWrite(RFM73_CE,HIGH);
   pinMode(LED,OUTPUT);
-  digitalWrite(LED,LOW);
+  digitalWrite(LED,HIGH);   // LED Lights when pin LOW
   // Analog
   pinMode(PA0,INPUT_ANALOG);
   pinMode(PA1,INPUT_ANALOG);
@@ -85,22 +85,20 @@ void loop() {
   
   // Отправляем пакет в канал
   
-  rfm73.reg_modify(RFM73_RG_STATUS,(1<<RX_DR)|(1<TX_DS)|(1<<MAX_RT),0); // clear all interrupts
-  rfm73.flush_tx_fifo();
-  rfm73.set_tx_pl((char *)rc_packet,RC_PACKET_LEN);
+  rfm73.send((char *)rc_packet,RC_PACKET_LEN);
   
 
   uint16_t cnt=10;
-  while ((!rfm73.is_tx_fifo_empty())&&cnt){
+  while ((!rfm73.is_data_sent())&&cnt){
     cnt--;
     delay(1);
   }
 
   // if got ASK from rx - blink led
   if (cnt){
-    digitalWrite(LED,HIGH);
-    delay(10);
     digitalWrite(LED,LOW);
+    delay(10);
+    digitalWrite(LED,HIGH);
   }
 
   // debug

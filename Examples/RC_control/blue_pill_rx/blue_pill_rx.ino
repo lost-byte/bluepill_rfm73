@@ -64,7 +64,7 @@ void setup() {
   pinMode(RFM73_CE,OUTPUT);
   digitalWrite(RFM73_CE,HIGH);
   pinMode(LED,OUTPUT);
-  digitalWrite(LED,LOW);
+  digitalWrite(LED,HIGH);   // Led lights when pin is LOW
   
   // Read radio channel
   //set_channel();
@@ -117,9 +117,9 @@ void loop() {
     // rc packet has been received less then WAIT_RX_MAXCNT tryes
 
     // indicate that rc_packet has been recieved
-    digitalWrite(LED,HIGH);
-    delay(10);
     digitalWrite(LED,LOW);
+    delay(10);
+    digitalWrite(LED,HIGH);
 
     // get payload
     rfm73.get_rx_pl((char *)rc_packet,RC_PACKET_LEN);

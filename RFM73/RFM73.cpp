@@ -208,17 +208,23 @@ bool RFM73::is_tx_fifo_empty(){
 	return (r_fifo_status&(1<<TX_EMPTY));
 }
 
-bool RFM73::is_tx_data_sent(){
+bool RFM73::is_data_sent(){
 	uint8_t r_status = reg_read(RFM73_RG_STATUS);
 	return (r_status&(1<<TX_DS));
 }
 
-bool RFM73::is_rx_new_data(){
+bool RFM73::is_data_ready(){
 	uint8_t r_status = reg_read(RFM73_RG_STATUS);
 	return (r_status&(1<<RX_DR));
 }
 
-void RFM73::read_rx_blocked(char *dest, uint16_t timeout_ms){
+void RFM73::send(char *src, uint8_t len){
+	reg_modify(RFM73_RG_STATUS,(1<TX_DS)|(1<<MAX_RT),0);
+	flush_tx_fifo();
+	set_tx_pl(src,len);
+}
+
+void RFM73::read_blocked(char *dest, uint16_t timeout_ms){
 	while (!is_rx_fifo_full()&&timeout_ms){
 		delay(1);
 		timeout_ms--;
